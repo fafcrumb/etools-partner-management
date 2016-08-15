@@ -215,6 +215,24 @@ gulp.task('clean', function() {
 
 // Watch files for changes & reload
 gulp.task('serve', ['styles'], function() {
+
+  //API to local data URL translations
+  var dataMiddleware = function(req, res, next) {
+    switch (req.url){
+      // common resources
+      case '/users/api/profile/':
+        req.url = '/data/users/profile.json';
+        break;
+
+      // partner management app
+      //***********************
+      case '/api/partners_list/':
+	req.url = '/data/partner_data.json';
+	break;
+    }
+    return next();
+  };
+
   browserSync({
     port: 5000,
     notify: false,
@@ -233,7 +251,10 @@ gulp.task('serve', ['styles'], function() {
     // https: true,
     server: {
       baseDir: ['.tmp', 'app'],
-      middleware: [historyApiFallback()]
+      middleware: [historyApiFallback(), dataMiddleware],
+      routes: {
+        '/data': 'data'
+      }
     }
   });
 
@@ -261,7 +282,12 @@ gulp.task('serve:dist', ['default'], function() {
     // Note: this uses an unsigned certificate which on first access
     //       will present a certificate warning in the browser.
     // https: true,
-    server: dist(),
+    server: {
+      baseDir: dist(),
+      routes: {
+        '/data': 'data'
+      }
+    },
     middleware: [historyApiFallback()]
   });
 });
